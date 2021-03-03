@@ -5,6 +5,7 @@ class PdfController {
   PdfController({
     @required this.document,
     this.initialPage = 1,
+    this.maxPage,
     this.viewportFraction = 1.0,
   })  : assert(initialPage != null),
         assert(viewportFraction != null),
@@ -15,6 +16,9 @@ class PdfController {
 
   /// The page to show when first creating the [PdfView].
   final int initialPage;
+
+  /// The last page to show in [PdfView].
+  final int maxPage;
 
   /// The fraction of the viewport that each page should occupy.
   ///
