@@ -1,26 +1,27 @@
 import 'dart:ui';
 
+import 'package:extended_image/extended_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
-import 'package:extended_image/extended_image.dart';
 import 'package:native_pdf_renderer/native_pdf_renderer.dart';
 import 'package:synchronized/synchronized.dart';
 
-export 'package:native_pdf_renderer/native_pdf_renderer.dart';
 export 'package:extended_image/extended_image.dart';
+export 'package:native_pdf_renderer/native_pdf_renderer.dart';
 
 part 'native_pdf_controller.dart';
 
 typedef PDFViewPageBuilder = Widget Function(
-  /// Page image model
-  PdfPageImage pageImage,
 
-  /// true if page now showed
-  bool isCurrentIndex,
+    /// Page image model
+    PdfPageImage pageImage,
 
-  /// onDoubleTap Animation
-  AnimationController animationController,
-);
+    /// true if page now showed
+    bool isCurrentIndex,
+
+    /// onDoubleTap Animation
+    AnimationController animationController,
+    );
 
 typedef PDFViewPageRenderer = Future<PdfPageImage> Function(PdfPage page);
 
@@ -43,7 +44,8 @@ class PdfView extends StatefulWidget {
     this.physics,
     this.loaderSwitchDuration = const Duration(seconds: 1),
     Key key,
-  })  : assert(pageSnapping != null),
+  })
+      : assert(pageSnapping != null),
         assert(controller != null),
         assert(scrollDirection != null),
         assert(renderer != null),
@@ -89,7 +91,8 @@ class PdfView extends StatefulWidget {
   final ScrollPhysics physics;
 
   /// Default PdfRenderer options
-  static Future<PdfPageImage> _render(PdfPage page) => page.render(
+  static Future<PdfPageImage> _render(PdfPage page) =>
+      page.render(
         width: page.width * 2,
         height: page.height * 2,
         format: PdfPageFormat.JPEG,
@@ -99,11 +102,9 @@ class PdfView extends StatefulWidget {
   static const List<double> _doubleTapScales = <double>[1.0, 2.0, 3.0];
 
   /// Default page builder
-  static Widget _pageBuilder(
-    PdfPageImage pageImage,
-    bool isCurrentIndex,
-    AnimationController animationController,
-  ) {
+  static Widget _pageBuilder(PdfPageImage pageImage,
+      bool isCurrentIndex,
+      AnimationController animationController,) {
     Animation<double> _doubleTapAnimation;
     void Function() _animationListener;
 
@@ -112,17 +113,18 @@ class PdfView extends StatefulWidget {
       key: Key(pageImage.hashCode.toString()),
       fit: BoxFit.contain,
       mode: ExtendedImageMode.gesture,
-      initGestureConfigHandler: (_) => GestureConfig(
-        minScale: 1,
-        maxScale: 3.0,
-        animationMinScale: .75,
-        animationMaxScale: 3.0,
-        speed: 1,
-        inertialSpeed: 100,
-        inPageView: true,
-        initialScale: 1.0,
-        cacheGesture: false,
-      ),
+      initGestureConfigHandler: (_) =>
+          GestureConfig(
+            minScale: 1,
+            maxScale: 3.0,
+            animationMinScale: .75,
+            animationMaxScale: 3.0,
+            speed: 1,
+            inertialSpeed: 100,
+            inPageView: true,
+            initialScale: 1.0,
+            cacheGesture: false,
+          ),
       onDoubleTap: (ExtendedImageGestureState state) {
         final pointerDownPosition = state.pointerDownPosition;
         final begin = state.gestureDetails.totalScale;
@@ -152,7 +154,7 @@ class PdfView extends StatefulWidget {
         };
         _doubleTapAnimation = animationController
             .drive(Tween<double>(begin: begin, end: end))
-              ..addListener(_animationListener);
+          ..addListener(_animationListener);
 
         animationController.forward();
       },
@@ -226,7 +228,8 @@ class _PdfViewState extends State<PdfView> with SingleTickerProviderStateMixin {
     });
   }
 
-  Widget _buildLoaded() => Listener(
+  Widget _buildLoaded() =>
+      Listener(
         onPointerSignal: (PointerSignalEvent event) {
           if (event is PointerScrollEvent && !widget.pageSnapping) {
             widget.controller._pageController.animateTo(
@@ -240,28 +243,29 @@ class _PdfViewState extends State<PdfView> with SingleTickerProviderStateMixin {
         child: ExtendedImageGesturePageView.builder(
           itemBuilder: (BuildContext context, int index) =>
               FutureBuilder<PdfPageImage>(
-            future: _getPageImage(index),
-            builder: (_, snapshot) {
-              if (snapshot.hasData) {
-                return KeyedSubtree(
-                  key: Key('$runtimeType.page.'
-                      '${widget.controller._document.hashCode}.'
-                      '${_pages[index].pageNumber}'),
-                  child: widget.pageBuilder(
-                    _pages[index],
-                    index == _currentIndex,
-                    _animationController,
-                  ),
-                );
-              }
+                future: _getPageImage(index),
+                builder: (_, snapshot) {
+                  if (snapshot.hasData) {
+                    return KeyedSubtree(
+                      key: Key('$runtimeType.page.'
+                          '${widget.controller._document.hashCode}.'
+                          '${_pages[index].pageNumber}'),
+                      child: widget.pageBuilder(
+                        _pages[index],
+                        index == _currentIndex,
+                        _animationController,
+                      ),
+                    );
+                  }
 
-              return KeyedSubtree(
-                key: Key('$runtimeType.page.loading'),
-                child: widget.pageLoader ?? SizedBox(),
-              );
-            },
-          ),
-          itemCount: widget.controller._document.pagesCount,
+                  return KeyedSubtree(
+                    key: Key('$runtimeType.page.loading'),
+                    child: widget.pageLoader ?? SizedBox(),
+                  );
+                },
+              ),
+          itemCount: widget.controller.maxPage ?? widget.controller._document
+              .pagesCount,
           onPageChanged: (int index) {
             _currentIndex = index;
             widget.onPageChanged?.call(index + 1);
